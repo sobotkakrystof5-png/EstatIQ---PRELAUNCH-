@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EstatIQ — Pronájem, který se řídí sám</title>
+  <meta name="description" content="Jeden systém místo Excelu, WhatsAppu a papírových faktur. Správa nájmů, platby, daně — automaticky." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='46' fill='none' viewBox='0 0 48 46'%3E%3Cpath fill='%23863bff' d='M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z'/%3E%3C/svg%3E" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+      --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+      --emerald-400: #34d399;
+      --emerald-500: #10b981;
+      --emerald-600: #059669;
+      --emerald-800: #065f46;
+      --emerald-900: #064e3b;
+      --emerald-950: #022c22;
+      --surface-0: #ffffff;
+      --surface-50: #f8fafc;
+      --surface-200: #e2e8f0;
+      --surface-300: #cbd5e1;
+      --surface-400: #94a3b8;
+      --surface-500: #64748b;
+      --surface-600: #475569;
+      --surface-700: #334155;
+      --surface-800: #1e293b;
+      --surface-900: #0f172a;
+      --surface-950: #0b0f19;
+    }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-950);
+      color: var(--surface-50);
+      min-height: 100svh;
+    }
+
+    /* ── Splash ────────────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-950);
+      animation: splashOut 0.55s cubic-bezier(0.4,0,1,1) 2.2s both;
+    }
+
+    @keyframes splashOut {
+      to { opacity: 0; transform: scale(0.97); pointer-events: none; }
+    }
+
+    .splash-glow {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(16,185,129,0.10) 0%, transparent 70%);
+    }
+
+    .splash-logo {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--surface-50);
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.6s cubic-bezier(0,0,0.2,1) 0.1s both;
+    }
+
+    .splash-logo em {
+      font-style: normal;
+      color: var(--emerald-400);
+    }
+
+    .splash-sub {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--surface-400);
+      letter-spacing: -0.01em;
+      margin-top: 1rem;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 0.4s both;
+    }
+
+    .splash-progress {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3.5rem;
+      height: 1px;
+      background: var(--surface-800);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .splash-progress-fill {
+      height: 100%;
+      background: var(--emerald-500);
+      border-radius: 9999px;
+      animation: progressFill 1.8s linear 0.8s both;
+    }
+
+    @keyframes progressFill {
+      from { width: 0% }
+      to   { width: 100% }
+    }
+
+    /* ── Main page ─────────────────────────────────── */
+    #main {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      animation: mainIn 0.4s cubic-bezier(0,0,0.2,1) 2.4s both;
+      opacity: 0;
+    }
+
+    @keyframes mainIn {
+      from { opacity: 0 }
+      to   { opacity: 1 }
+    }
+
+    /* Navbar */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(30,41,59,0.6);
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--surface-50);
+      text-decoration: none;
+    }
+
+    .logo em {
+      font-style: normal;
+      color: var(--emerald-500);
+    }
+
+    .coming-soon-badge {
+      display: none;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--emerald-400);
+      background: rgba(6,78,59,0.3);
+      border: 1px solid rgba(6,78,59,0.5);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 640px) {
+      .coming-soon-badge { display: inline-flex; }
+    }
+
+    /* Hero */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .hero-glow {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .hero-glow::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.09) 0%, transparent 70%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 5rem 1.5rem;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--emerald-400);
+      background: rgba(2,44,34,0.8);
+      border: 1px solid rgba(6,78,59,0.6);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 2.6s both;
+    }
+
+    .eyebrow-dot {
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: 9999px;
+      background: var(--emerald-400);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1 }
+      50%       { opacity: 0.4 }
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      font-weight: 700;
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+      color: var(--surface-50);
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 2.68s both;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--emerald-400);
+    }
+
+    .subheadline {
+      font-size: 1.125rem;
+      line-height: 1.6;
+      color: var(--surface-400);
+      max-width: 32rem;
+      margin: 0 auto 2.5rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 2.76s both;
+    }
+
+    /* Email form */
+    .form-wrap {
+      max-width: 28rem;
+      margin: 0 auto 2rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 2.84s both;
+    }
+
+    .email-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .email-input {
+      flex: 1;
+      background: rgba(30,41,59,0.6);
+      border: 1px solid var(--surface-700);
+      border-radius: 0.75rem;
+      padding: 0.875rem 1rem;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      color: var(--surface-50);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .email-input::placeholder { color: var(--surface-500); }
+
+    .email-input:focus {
+      border-color: var(--emerald-600);
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.2);
+    }
+
+    .submit-btn {
+      background: var(--emerald-600);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.875rem 1.25rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .submit-btn:hover:not(:disabled) { background: var(--emerald-500); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 9999px;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: #f87171;
+      text-align: center;
+    }
+
+    /* Success state */
+    .success-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: rgba(6,78,59,0.6);
+      border: 1px solid rgba(6,78,59,0.6);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      text-align: left;
+    }
+
+    .success-icon { color: var(--emerald-400); flex-shrink: 0; margin-top: 0.125rem; }
+
+    .success-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6ee7b7;
+      margin-bottom: 0.125rem;
+    }
+
+    .success-body {
+      font-size: 0.875rem;
+      color: rgba(52,211,153,0.7);
+    }
+
+    /* Social proof */
+    .social-proof {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 4rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 2.92s both;
+    }
+
+    .avatars {
+      display: flex;
+      margin-right: 0.25rem;
+    }
+
+    .avatar {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      border: 2px solid var(--surface-950);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5625rem;
+      font-weight: 600;
+      margin-left: -0.375rem;
+    }
+
+    .avatar:first-child { margin-left: 0; }
+
+    .social-text {
+      font-size: 0.875rem;
+      color: var(--surface-400);
+    }
+
+    .social-text strong {
+      color: var(--surface-200);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Feature grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      animation: fadeUp 0.5s cubic-bezier(0,0,0.2,1) 3.0s both;
+    }
+
+    @media (min-width: 768px) {
+      .features { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .feature-card {
+      background: rgba(15,23,42,0.6);
+      border: 1px solid rgba(30,41,59,0.6);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      text-align: left;
+      transition: border-color 0.15s;
+    }
+
+    .feature-card:hover { border-color: var(--surface-700); }
+
+    .feature-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      background: rgba(6,78,59,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      color: var(--emerald-400);
+    }
+
+    .feature-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--surface-200);
+      margin-bottom: 0.25rem;
+    }
+
+    .feature-desc {
+      font-size: 0.75rem;
+      color: var(--surface-500);
+      line-height: 1.4;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(30,41,59,0.6);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--surface-600);
+    }
+
+    /* Utility animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Splash screen -->
+  <div id="splash" role="status" aria-label="Načítání">
+    <div class="splash-glow" aria-hidden="true"></div>
+    <p class="splash-logo">Estat<em>IQ</em></p>
+    <p class="splash-sub">Pronájem, který se řídí sám.</p>
+    <div class="splash-progress" aria-hidden="true">
+      <div class="splash-progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Main page -->
+  <div id="main">
+    <header>
+      <a href="/" class="logo">Estat<em>IQ</em></a>
+      <span class="coming-soon-badge">Coming Soon</span>
+    </header>
+
+    <main>
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-content">
+
+        <!-- Eyebrow -->
+        <div class="eyebrow">
+          <span class="eyebrow-dot" aria-hidden="true"></span>
+          Prelaunch — limitovaný early access
+        </div>
+
+        <!-- Headline -->
+        <h1>Pronájem, který se<em>&nbsp;řídí sám.</em></h1>
+
+        <!-- Subheadline -->
+        <p class="subheadline">
+          Jeden systém místo Excelu, WhatsAppu a papírových faktur. Správa nájmů, platby, daně — automaticky.
+        </p>
+
+        <!-- Form -->
+        <div class="form-wrap">
+          <div id="form-container">
+            <form class="email-form" id="waitlist-form" novalidate>
+              <input type="text" name="_hp" id="_hp" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" />
+              <input
+                type="text"
+                id="name-input"
+                class="email-input"
+                placeholder="Vaše jméno"
+                autocomplete="given-name"
+                aria-label="Jméno"
+              />
+              <div class="form-row">
+                <input
+                  type="email"
+                  id="email-input"
+                  class="email-input"
+                  placeholder="vas@email.cz"
+                  autocomplete="email"
+                  aria-label="E-mail"
+                  required
+                />
+                <button type="submit" class="submit-btn" id="submit-btn">
+                  <span id="btn-label">Chci první přístup</span>
+                  <svg id="btn-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                  <span id="btn-spinner" class="spinner" style="display:none"></span>
+                </button>
+              </div>
+            </form>
+            <p id="error-msg" class="error-msg" role="alert" style="display:none"></p>
+          </div>
+        </div>
+
+        <!-- Social proof -->
+        <div class="social-proof" aria-label="Počet lidí na čekací listině">
+          <div class="avatars" aria-hidden="true">
+            <div class="avatar" style="background:#059669;color:#d1fae5">MN</div>
+            <div class="avatar" style="background:#4338ca;color:#e0e7ff">JP</div>
+            <div class="avatar" style="background:#b45309;color:#fef3c7">KS</div>
+            <div class="avatar" style="background:#9d174d;color:#fce7f3">TK</div>
+          </div>
+          <p class="social-text">
+            <strong id="count-display">5</strong>
+            lidí už čeká · zdarma, bez závazků
+          </p>
+        </div>
+
+        <!-- Feature grid -->
+        <div class="features" role="list">
+          <div class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Zap icon -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
+            <p class="feature-title">Platební automat</p>
+            <p class="feature-desc">QR kódy &amp; upomínky samy</p>
+          </div>
+          <div class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- Building2 icon -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+              </svg>
+            </div>
+            <p class="feature-title">Správa nemovitostí</p>
+            <p class="feature-desc">Vše na jednom místě</p>
+          </div>
+          <div class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- FileText icon -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+              </svg>
+            </div>
+            <p class="feature-title">Dokumenty</p>
+            <p class="feature-desc">Smlouvy, expiry alerts</p>
+          </div>
+          <div class="feature-card" role="listitem">
+            <div class="feature-icon" aria-hidden="true">
+              <!-- BarChart3 icon -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"/>
+                <path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+              </svg>
+            </div>
+            <p class="feature-title">Daňový export</p>
+            <p class="feature-desc">PDF pro účetního, kliknutím</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer>
+      <span>© <span id="year"></span> EstatIQ</span>
+      <span>Pronájem, který se řídí sám 🇨🇿</span>
+    </footer>
+  </div>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear()
+
+    // Hide splash after animation
+    const splash = document.getElementById('splash')
+    setTimeout(() => { splash.style.display = 'none' }, 2850)
+
+    // Fetch waitlist count
+    fetch('/api/waitlist-count')
+      .then(r => r.json())
+      .then(data => {
+        if (typeof data.count === 'number') {
+          document.getElementById('count-display').textContent = data.count
+        }
+      })
+      .catch(() => {})
+
+    // Form submit
+    const form = document.getElementById('waitlist-form')
+    const nameInput = document.getElementById('name-input')
+    const emailInput = document.getElementById('email-input')
+    const submitBtn = document.getElementById('submit-btn')
+    const btnLabel = document.getElementById('btn-label')
+    const btnIcon = document.getElementById('btn-icon')
+    const btnSpinner = document.getElementById('btn-spinner')
+    const errorMsg = document.getElementById('error-msg')
+    const formContainer = document.getElementById('form-container')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const email = emailInput.value.trim()
+      const name = nameInput.value.trim()
+      if (!email || !email.includes('@')) return
+
+      // Loading state
+      submitBtn.disabled = true
+      btnLabel.textContent = ''
+      btnIcon.style.display = 'none'
+      btnSpinner.style.display = 'inline-block'
+      errorMsg.style.display = 'none'
+
+      try {
+        const res = await fetch('/api/waitlist-join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name, locale: 'cs', _hp: document.getElementById('_hp').value }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Server error')
+
+        // Update count if returned
+        if (typeof data.count === 'number') {
+          document.getElementById('count-display').textContent = data.count
+        }
+
+        // Show success
+        formContainer.innerHTML = `
+          <div class="success-box" role="alert">
+            <svg class="success-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <div>
+              <p class="success-title">Jste na listině!</p>
+              <p class="success-body">Potvrzení jsme odeslali na váš e-mail. Při spuštění dostanete přístup jako první.</p>
+            </div>
+          </div>
+        `
+      } catch {
+        // Error state — reset after 3s
+        submitBtn.disabled = false
+        btnLabel.textContent = 'Chci první přístup'
+        btnIcon.style.display = 'inline-block'
+        btnSpinner.style.display = 'none'
+        errorMsg.textContent = 'Něco se pokazilo. Zkuste to prosím znovu.'
+        errorMsg.style.display = 'block'
+        setTimeout(() => { errorMsg.style.display = 'none' }, 3000)
+      }
+    })
+  </script>
+</body>
+</html>

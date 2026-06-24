@@ -1,0 +1,10 @@
+{
+  "name": "estatiq-prelaunch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "resend": "^4.6.0"
+  }
+}
